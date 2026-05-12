@@ -1,34 +1,21 @@
-# Pauta Focalizada PCSP - Publicación en GitHub Pages
+# Pauta focalizada PCSP
 
-## Archivo principal
+ID pauta: `PF_PCSP_20260406_20260503`
 
-GitHub Pages debe encontrar un archivo llamado `index.html` en la raíz del repositorio o carpeta de publicación.
+## Archivos para publicar en GitHub Pages
 
-Este paquete ya contiene:
+- `index.html`: visor movil de pauta focalizada.
+- `nomina.csv`: nomina local leida por el visor. Debe estar junto al `index.html`.
+- `pauta_focalizada_pcsp.docx`: informe Word generado desde plantilla institucional.
+- `pauta_focalizada_pcsp.pdf`: version PDF del informe.
+- `pauta_focalizada_pcsp.xlsx`: respaldo tabular.
+- `puntos_focalizados_pcsp.geojson`: puntos operativos.
+- `celdas_criticas_pcsp.geojson`: grilla metodologica.
+- `cuadrantes_focalizados_pcsp.geojson`: cuadrantes focalizados.
+- `cuadrantes_todos_pcsp.geojson`: todos los cuadrantes con asignacion.
+- `mapa_pauta_focalizada_pcsp.png`: mapa usado en el informe.
+- `.nojekyll`: evita procesamiento Jekyll en GitHub Pages.
 
-- `index.html`: visor móvil de la pauta focalizada.
-- `.nojekyll`: evita que GitHub Pages intente procesar el sitio con Jekyll.
+El visor intenta leer primero `nomina.csv` desde este mismo repositorio. Si no puede cargarlo, intenta como respaldo la URL de ArcGIS Online configurada en el script.
 
-## Pasos resumidos
-
-1. Crear un repositorio en GitHub, por ejemplo: `pauta-focalizada-pcsp`.
-2. Subir `index.html` y `.nojekyll` a la raíz del repositorio.
-3. Entrar a `Settings` > `Pages`.
-4. En `Build and deployment`, elegir `Deploy from a branch`.
-5. Seleccionar rama `main` y carpeta `/root`.
-6. Guardar.
-7. Esperar algunos minutos y abrir el enlace publicado.
-
-## Actualización de la pauta
-
-Cada vez que generes una nueva pauta:
-
-1. Ejecuta `generar_pauta_focalizada_pcsp.py`.
-2. Copia el nuevo `salida_pauta/index.html`.
-3. Reemplaza el `index.html` del repositorio.
-4. Haz commit / upload.
-5. GitHub Pages actualizará el sitio.
-
-## Precaución
-
-Si el repositorio es público, el visor también queda público en internet. No publicar datos sensibles o información operativa que no deba difundirse.
+El script Python y los insumos brutos no son necesarios para publicar el visor; deben mantenerse en la carpeta de trabajo local/VSC.
