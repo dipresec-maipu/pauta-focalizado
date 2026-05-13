@@ -9,6 +9,7 @@ ID pauta: `PF_PCSP_20260406_20260503`
 - `pauta_focalizada_pcsp.docx`: informe Word generado desde plantilla institucional.
 - `pauta_focalizada_pcsp.pdf`: version PDF del informe.
 - `pauta_focalizada_pcsp.xlsx`: respaldo tabular.
+- `pauta_planificada_pcsp.csv`: puntos planificados para contrastar con registros Survey123.
 - `puntos_focalizados_pcsp.geojson`: puntos operativos.
 - `celdas_criticas_pcsp.geojson`: grilla metodologica.
 - `cuadrantes_focalizados_pcsp.geojson`: cuadrantes focalizados.
