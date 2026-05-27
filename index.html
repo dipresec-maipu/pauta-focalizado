@@ -22,6 +22,10 @@
     .btn-primary { background:#7c3aed; color:white; border-color:#7c3aed; }
     .btn-dark { background:#0f2742; color:white; border-color:#0f2742; }
     .btn-route { background:#2563eb; color:white; border-color:#2563eb; font-weight:bold; }
+    .btn-soft { background:#f8fafc; color:#0f2742; border-color:#cbd5e1; }
+    .btn-clear-func { white-space:nowrap; }
+    .filter-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .filter-actions button { font-size:12px; padding:8px 9px; border-radius:9px; box-shadow:none; }
     .drawer { position:absolute; left:10px; right:10px; top:112px; z-index:901; background:white; border:1px solid #d1d5db; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.18); padding:10px; display:none; max-height:52vh; overflow:auto; touch-action:none; }
     .drawer.open { display:block; }
     .drawer-handle { width:54px; height:5px; border-radius:999px; background:#cbd5e1; margin:0 auto 8px auto; }
@@ -61,6 +65,7 @@
   <div id="map"></div>
   <div class="top-actions">
     <select id="selectFuncionario" class="select-funcionario"><option value="">Cargando nómina...</option></select>
+    <button id="btnLimpiarFuncionario" class="btn-soft btn-clear-func" title="Quitar funcionario seleccionado">✕ Funcionario</button>
     <button id="btnDrawer" class="btn-dark">☰ Opciones</button>
     <button id="btnRutaVisible" class="btn-route">🧭 Ruta visible</button>
     <button id="btnUbicacion" class="btn-primary">📍 Mi ubicación</button>
@@ -69,6 +74,10 @@
     <div class="drawer-handle" id="drawerHandle"></div>
     <div class="drawer-grid">
       <select id="filtroEquipo"><option value="Todos">Todos los equipos</option><option value="Móviles">Móviles</option><option value="Motoristas">Motoristas</option><option value="Delta">Delta</option></select>
+      <div class="filter-actions">
+        <button type="button" id="btnLimpiarEquipo" class="btn-soft">Mostrar todos los equipos</button>
+        <button type="button" id="btnLimpiarFiltros" class="btn-soft">Limpiar filtros</button>
+      </div>
     </div>
     <div class="hint" id="funcionarioHint">La nómina se incrusta desde insumos/nomina.csv al generar el visor.</div>
     <div class="alerta-cuadrantes" id="alertaCuadrantes">Confirma el o los cuadrantes asignados para este turno antes de iniciar la ruta.</div>
@@ -177,15 +186,45 @@ function abrirRutaVisible(){
   window.open(url, '_blank');
 }
 
+function equipoFuncionarioCoincideFiltro(func){
+  const equipoFiltro=document.getElementById('filtroEquipo').value;
+  if(equipoFiltro==='Todos') return true;
+  return equipoNominaAEquipoPauta(func.equipo)===equipoFiltro;
+}
+function funcionariosFiltrados(){
+  return nomina.filter(equipoFuncionarioCoincideFiltro);
+}
+function renderSelectorFuncionarios(preservarSeleccion=true){
+  const sel=document.getElementById('selectFuncionario');
+  const actual=preservarSeleccion ? sel.value : '';
+  const filtrados=funcionariosFiltrados();
+  const equipoFiltro=document.getElementById('filtroEquipo').value;
+  const etiquetaBase = equipoFiltro==='Todos' ? 'Todos los funcionarios' : `Funcionarios de ${equipoFiltro}`;
+  sel.innerHTML=`<option value="">${etiquetaBase} / sin selección</option>`+filtrados.map(x=>`<option value="${x.codigo_funcionario}">${x.nombre_funcionario} · ${x.equipo}</option>`).join('');
+  if(actual && filtrados.some(x=>x.codigo_funcionario===actual)){
+    sel.value=actual;
+  } else if(actual){
+    sel.value='';
+    funcionarioSeleccionado=null;
+    localStorage.removeItem('codigo_funcionario_pauta');
+  }
+}
 function cargarNomina(){
   const sel=document.getElementById('selectFuncionario');
   if(Array.isArray(NOMINA_EMBEBIDA) && NOMINA_EMBEBIDA.length>0){
     nomina=NOMINA_EMBEBIDA.map(x=>({codigo_funcionario:String(x.codigo_funcionario||'').trim(), nombre_funcionario:String(x.nombre_funcionario||x.codigo_funcionario||'').trim(), equipo:String(x.equipo||'').trim()})).filter(x=>x.codigo_funcionario);
     nomina.sort((a,b)=>a.equipo.localeCompare(b.equipo)||a.nombre_funcionario.localeCompare(b.nombre_funcionario));
-    sel.innerHTML='<option value="">Seleccionar funcionario para registrar</option>'+nomina.map(x=>`<option value="${x.codigo_funcionario}">${x.nombre_funcionario} · ${x.equipo}</option>`).join('');
+    renderSelectorFuncionarios(false);
     const guardado=localStorage.getItem('codigo_funcionario_pauta');
-    if(guardado && nomina.some(x=>x.codigo_funcionario===guardado)){ sel.value=guardado; seleccionarFuncionario(guardado); }
-    document.getElementById('funcionarioHint').textContent=`Nómina cargada desde datos incrustados en el visor (${nomina.length} funcionarios).`;
+    if(guardado && nomina.some(x=>x.codigo_funcionario===guardado)){
+      const f=nomina.find(x=>x.codigo_funcionario===guardado);
+      const equipoPauta=equipoNominaAEquipoPauta(f.equipo);
+      if(equipoPauta!=='Todos') document.getElementById('filtroEquipo').value=equipoPauta;
+      renderSelectorFuncionarios(false);
+      sel.value=guardado;
+      seleccionarFuncionario(guardado);
+    }
+    document.getElementById('funcionarioHint').textContent=`Nómina cargada desde datos incrustados en el visor (${nomina.length} funcionarios). El listado se filtra automáticamente según el equipo seleccionado.`;
   } else {
     sel.innerHTML='<option value="">No se pudo cargar nómina</option>';
     document.getElementById('funcionarioHint').textContent='No se pudo cargar la nómina. Revisa insumos/nomina.csv y vuelve a ejecutar el script.';
@@ -197,10 +236,39 @@ function seleccionarFuncionario(codigo){
     localStorage.setItem('codigo_funcionario_pauta', funcionarioSeleccionado.codigo_funcionario);
     const equipoPauta=equipoNominaAEquipoPauta(funcionarioSeleccionado.equipo);
     if(equipoPauta!=='Todos') document.getElementById('filtroEquipo').value=equipoPauta;
+    renderSelectorFuncionarios(true);
+    document.getElementById('selectFuncionario').value=funcionarioSeleccionado.codigo_funcionario;
     selectedQuadrants = new Set();
     reconstruirCuadrantes(true);
     document.getElementById('drawer').classList.add('open');
+  } else {
+    localStorage.removeItem('codigo_funcionario_pauta');
+    renderSelectorFuncionarios(false);
   }
+  render();
+}
+function limpiarFuncionario(){
+  funcionarioSeleccionado=null;
+  localStorage.removeItem('codigo_funcionario_pauta');
+  renderSelectorFuncionarios(false);
+  render();
+}
+function limpiarEquipo(){
+  document.getElementById('filtroEquipo').value='Todos';
+  selectedQuadrants=new Set();
+  renderSelectorFuncionarios(true);
+  reconstruirCuadrantes(true);
+  document.getElementById('drawer').classList.add('open');
+  render();
+}
+function limpiarFiltros(){
+  funcionarioSeleccionado=null;
+  localStorage.removeItem('codigo_funcionario_pauta');
+  document.getElementById('filtroEquipo').value='Todos';
+  selectedQuadrants=new Set();
+  renderSelectorFuncionarios(false);
+  reconstruirCuadrantes(true);
+  document.getElementById('drawer').classList.add('open');
   render();
 }
 
@@ -246,7 +314,10 @@ document.getElementById('btnDrawer').addEventListener('click',()=>document.getEl
 document.getElementById('btnDrawerCloseHint').addEventListener('click',()=>document.getElementById('drawer').classList.remove('open'));
 document.getElementById('btnRutaVisible').addEventListener('click',abrirRutaVisible);
 document.getElementById('selectFuncionario').addEventListener('change',e=>seleccionarFuncionario(e.target.value));
-document.getElementById('filtroEquipo').addEventListener('change',()=>{ selectedQuadrants=new Set(); reconstruirCuadrantes(true); document.getElementById('drawer').classList.add('open'); render(); });
+document.getElementById('btnLimpiarFuncionario').addEventListener('click',limpiarFuncionario);
+document.getElementById('filtroEquipo').addEventListener('change',()=>{ selectedQuadrants=new Set(); renderSelectorFuncionarios(true); reconstruirCuadrantes(true); document.getElementById('drawer').classList.add('open'); render(); });
+document.getElementById('btnLimpiarEquipo').addEventListener('click',limpiarEquipo);
+document.getElementById('btnLimpiarFiltros').addEventListener('click',limpiarFiltros);
 document.getElementById('btnTodosCuadrantes').addEventListener('click',()=>{ selectedQuadrants=new Set(equiposCuadrantesDisponibles()); reconstruirCuadrantes(false); render(); });
 document.getElementById('btnLimpiarCuadrantes').addEventListener('click',()=>{ selectedQuadrants=new Set(); reconstruirCuadrantes(false); render(); });
 ['chkPuntos','chkNumeros','chkRutas','chkHeat','chkCuadrantes','chkGrilla'].forEach(id=>document.getElementById(id).addEventListener('change',render));
