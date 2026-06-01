@@ -26,7 +26,11 @@
     .btn-clear-func { white-space:nowrap; }
     .filter-actions { display:flex; gap:6px; flex-wrap:wrap; }
     .filter-actions button { font-size:12px; padding:8px 9px; border-radius:9px; box-shadow:none; }
-    .drawer { position:absolute; left:10px; right:10px; top:112px; z-index:901; background:white; border:1px solid #d1d5db; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.18); padding:10px; display:none; max-height:52vh; overflow:auto; touch-action:none; }
+    .drawer { position:absolute; left:10px; right:10px; top:112px; z-index:901; background:white; border:1px solid #d1d5db; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.18); padding:10px; padding-bottom:14px; display:none; max-height:min(58vh, calc(100vh - 230px)); overflow-y:auto; overflow-x:hidden; touch-action:pan-y; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+    .drawer::-webkit-scrollbar { width:6px; }
+    .drawer::-webkit-scrollbar-track { background:#f1f5f9; border-radius:999px; }
+    .drawer::-webkit-scrollbar-thumb { background:#94a3b8; border-radius:999px; }
+    .drawer::-webkit-scrollbar-thumb:hover { background:#64748b; }
     .drawer.open { display:block; }
     .drawer-handle { width:54px; height:5px; border-radius:999px; background:#cbd5e1; margin:0 auto 8px auto; }
     .drawer-grid { display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:8px; }
@@ -56,7 +60,11 @@
     .num-label { background:#0f172a; color:white; border:2px solid white; border-radius:50%; width:22px; height:22px; line-height:20px; text-align:center; font-weight:bold; font-size:12px; box-shadow:0 1px 4px rgba(0,0,0,.35); }
     .cuad-label { color:#111827; font-size:11px; font-weight:bold; text-shadow:1px 1px 2px white, -1px -1px 2px white; }
     .leaflet-popup-content { font-size:13px; }
-    @media (max-width:700px) { .top-actions { top:58px; } .drawer { top:152px; } .select-funcionario { min-width:calc(100vw - 20px); } }
+    @media (max-width:700px) {
+      .top-actions { top:58px; }
+      .drawer { top:152px; max-height:calc(100vh - 270px); }
+      .select-funcionario { min-width:calc(100vw - 20px); }
+    }
   </style>
 </head>
 <body>
@@ -65,10 +73,10 @@
   <div id="map"></div>
   <div class="top-actions">
     <select id="selectFuncionario" class="select-funcionario"><option value="">Cargando nómina...</option></select>
-    <button id="btnLimpiarFuncionario" class="btn-soft btn-clear-func" title="Quitar funcionario seleccionado">✕</button>
+    <button id="btnLimpiarFuncionario" class="btn-soft btn-clear-func" title="Quitar funcionario seleccionado">✕ Funcionario</button>
     <button id="btnDrawer" class="btn-dark">☰ Opciones</button>
-    <button id="btnRutaVisible" class="btn-route">Ruta visible</button>
-    <button id="btnUbicacion" class="btn-primary">Mi ubicación</button>
+    <button id="btnRutaVisible" class="btn-route">🧭 Ruta visible</button>
+    <button id="btnUbicacion" class="btn-primary">📍 Mi ubicación</button>
   </div>
   <div id="drawer" class="drawer">
     <div class="drawer-handle" id="drawerHandle"></div>
