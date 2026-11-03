@@ -1,6 +1,6 @@
 # Pauta focalizada PCSP
 
-ID pauta: `PF_PCSP_20260921_20261018`
+ID pauta: `PF_PCSP_20261005_20261101`
 
 ## Archivos para publicar en GitHub Pages
 
